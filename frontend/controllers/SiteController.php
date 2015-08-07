@@ -74,6 +74,35 @@ class SiteController extends Controller
     {
         return $this->render('index');
     }
+    /**
+     * Displays categories.
+     *
+     * @return mixed
+     */
+    public function actionCategories()
+    {
+        return $this->render('categories');
+    }
+    
+    /**
+     * Displays subcategories.
+     *
+     * @return mixed
+     */
+    public function actionSubcategories()
+    {
+        return $this->render('subcategories');
+    }
+     
+    /**
+     * Displays subcategories.
+     *
+     * @return mixed
+     */
+    public function actionContacts()
+    {
+        return $this->render('contacts');
+    }
 
     /**
      * Logs in a user.
@@ -210,10 +239,5 @@ class SiteController extends Controller
         return $this->render('resetPassword', [
             'model' => $model,
         ]);
-    }
-    
-        public function actionSay($message = 'Привет')
-    {
-        return $this->render('say', ['message' => $message]);
     }
 }
