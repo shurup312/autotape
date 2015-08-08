@@ -1,12 +1,15 @@
 <?php
 namespace frontend\controllers;
 
+use Faker\Provider\File;
 use frontend\models\MetaTag;
 use Exception;
 use frontend\models\Image;
+use frontend\models\storages\ImageStorage;
 use Yii;
 use frontend\models\Work;
 use frontend\models\search\WorkSearch;
+use yii\db\Transaction;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -17,8 +20,7 @@ use yii\web\UploadedFile;
  */
 class WorksController extends Controller
 {
-
-	public $uploadPath = '/images/works/';
+	public $layout = 'admin';
 
 	public function behaviors()
 	{
@@ -73,6 +75,8 @@ class WorksController extends Controller
 	{
 		$workModel = new Work();
 		$metaModel = new MetaTag();
+		$image1Model = new Image();
+		$image2Model = new Image();
 		try {
 			if (!$workModel->load(Yii::$app->request->post())) {
 				throw new Exception();
@@ -110,6 +114,8 @@ class WorksController extends Controller
 			'create', [
 						'workModel' => $workModel,
 						'metaModel' => $metaModel,
+						'image1Model' => $image1Model,
+						'image2Model' => $image2Model,
 					]
 		);
 	}
@@ -126,41 +132,54 @@ class WorksController extends Controller
 	{
 		$workModel = $this->findWorkModel($id);
 		$metaModel = $this->findMetaModel($id);
+		$image1Model = $this->findImageModel($workModel->image1);
+		$image2Model = $this->findImageModel($workModel->image2);
+		$image1Storage = new ImageStorage($image1Model);
+		$image2Storage = new ImageStorage($image2Model);
+		$transaction = null;
 		try {
 			if (!$workModel->load(Yii::$app->request->post())) {
 				throw new Exception();
 			}
-			if (!$metaModel->load(Yii::$app->request->post())) {
-				throw new Exception();
+			$transaction = \yii::$app->getDb()->beginTransaction();
+			if($image1Storage->isSendFile('image1') && $image1Storage->save()){
+				$image1Model->save();
+				$workModel->image1 = $image1Model->id;
 			}
-			$workModel = $this->uploadImageByName($workModel, 'image1');
-			if (!$workModel->image1) {
-				throw new Exception();
+
+			if($image2Storage->isSendFile('image2') && $image2Storage->save()){
+				$image2Model->save();
+				$workModel->image2 = $image2Model->id;
 			}
-			$workModel = $this->uploadImageByName($workModel, 'image2');
-			$workModel = $this->saveImageAndGetIdByWork($workModel, 'image1');
-			if ($workModel->image2) {
-				$workModel = $this->saveImageAndGetIdByWork($workModel, 'image2');
-			}
-			$workModel->user_id = \yii::$app->user->id;
+
 			if (!$workModel->save()) {
 				throw new Exception();
 			}
-			$metaModel->link = '/work/'.$workModel->id;
+
+			$metaModel->load(Yii::$app->request->post());
+			$metaModel->link = '/works/details/'.$workModel->id;
 			if (!$metaModel->save()) {
 				throw new Exception();
 			}
+			$transaction->commit();
 			return $this->redirect(
 				[
 					'index',
 				]
 			);
 		} catch(Exception $e) {
+			$image1Storage->delete();
+			$image2Storage->delete();
+			if($transaction instanceof Transaction){
+				$transaction->rollBack();
+			}
 		}
 		return $this->render(
 			'update', [
 						'workModel' => $workModel,
 						'metaModel' => $metaModel,
+						'image1Model' => $image1Model,
+						'image2Model' => $image2Model,
 					]
 		);
 	}
@@ -194,7 +213,27 @@ class WorksController extends Controller
 		if (($model = Work::findOne($id))!==null) {
 			return $model;
 		} else {
-			throw new NotFoundHttpException('The requested page does not exist.');
+			throw new NotFoundHttpException('Запрошенная страница не найдена');
+		}
+	}
+	/**
+	 * Finds the Image model based on its primary key value.
+	 * If the model is not found, a 404 HTTP exception will be thrown.
+	 *
+	 * @param integer $id
+	 *
+	 * @return Image the loaded model
+	 * @throws NotFoundHttpException if the model cannot be found
+	 */
+	protected function findImageModel($id)
+	{
+		if($id===null){
+			return new Image();
+		}
+		if (($model = Image::findOne($id))!==null) {
+			return $model;
+		} else {
+			throw new NotFoundHttpException('Запрошенная страница не найдена');
 		}
 	}
 	/**
@@ -211,7 +250,7 @@ class WorksController extends Controller
 		if (($model = MetaTag::findOne($id))!==null) {
 			return $model;
 		} else {
-			throw new NotFoundHttpException('The requested page does not exist.');
+			throw new NotFoundHttpException('Запрошенная страница не найдена');
 		}
 	}
 

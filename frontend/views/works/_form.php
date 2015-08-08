@@ -7,8 +7,8 @@ use yii\widgets\ActiveForm;
 /* @var $workModel frontend\models\Work */
 /* @var $metaModel frontend\models\MetaTag */
 /* @var $form yii\widgets\ActiveForm */
-$image1 = $workModel->getImage1()->one();
-$image2 = $workModel->getImage2()->one();
+/* @var $image1Model \frontend\models\Image */
+/* @var $image2Model \frontend\models\Image */
 ?>
 
 <div class="work-form">
@@ -16,15 +16,15 @@ $image2 = $workModel->getImage2()->one();
     <?php $form = ActiveForm::begin(['options' => ['enctype' => 'multipart/form-data']]); ?>
 
     <?= $form->field($workModel, 'name')->textInput(['maxlength' => true]) ?>
-	<?= $form->field($workModel, 'image1')->fileInput() ?>
-	<? if($image1): ?>
-		<?= Html::img($image1->path.$image1->filename, ['class' => 'preview']); ?><br>
-		<?=$form->field($workModel,'image1')->hiddenInput(['value'=>$image1->id])->label('');?>
+	<?= $form->field($image1Model, 'filename')->fileInput(['name'=>'Image[image1]']) ?>
+	<? if($image1Model): ?>
+		<?= Html::img($image1Model->path.$image1Model->filename, ['class' => 'preview']); ?><br>
+		<?=$form->field($image1Model,'filename')->hiddenInput(['value'=>$image1Model->id])->label('');?>
 	<? endif ;?>
-	<?= $form->field($workModel, 'image2')->fileInput(); ?>
-	<? if($image2): ?>
-		<?=Html::img($image2->path.$image2->filename,['class'=>'preview']);?>
-		<?=$form->field($workModel,'image2')->hiddenInput(['value'=>$image2->id])->label('');?>
+	<?= $form->field($image2Model, 'filename')->fileInput(['name'=>'Image[image2]']) ?>
+	<? if($image2Model): ?>
+		<?= Html::img($image2Model->path.$image2Model->filename, ['class' => 'preview']); ?><br>
+		<?=$form->field($image2Model,'filename')->hiddenInput(['value'=>$image2Model->id])->label('');?>
 	<? endif ;?>
 
     <?= $form->field($workModel, 'description')->textarea(['rows' => 6]) ?>
