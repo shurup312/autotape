@@ -19,12 +19,12 @@ use yii\widgets\ActiveForm;
 	<?= $form->field($image1Model, 'filename')->fileInput(['name'=>'Image[image1]']) ?>
 	<? if($image1Model): ?>
 		<?= Html::img($image1Model->path.$image1Model->filename, ['class' => 'preview']); ?><br>
-		<?=$form->field($image1Model,'filename')->hiddenInput(['value'=>$image1Model->id])->label('');?>
+		<?=Html::hiddenInput('Image[image1]',$image1Model->id);?>
 	<? endif ;?>
 	<?= $form->field($image2Model, 'filename')->fileInput(['name'=>'Image[image2]']) ?>
 	<? if($image2Model): ?>
 		<?= Html::img($image2Model->path.$image2Model->filename, ['class' => 'preview']); ?><br>
-		<?=$form->field($image2Model,'filename')->hiddenInput(['value'=>$image2Model->id])->label('');?>
+		<?=Html::hiddenInput('Image[image2]',$image2Model->id);?>
 	<? endif ;?>
 
     <?= $form->field($workModel, 'description')->textarea(['rows' => 6]) ?>
